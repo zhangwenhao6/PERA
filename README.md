@@ -53,34 +53,6 @@ Our codebase is built upon **HiRA**.
 
 ---
 
-## Repository Structure
-
-```
-.
-├── README.md
-├── customized_trainer
-│   └── customized_trainer.py         # Customized trainer implementation
-├── data_file                          # Raw datasets for various tasks
-│   └── ...                            # (Subfolders include convai2, llm_adapt, etc.)
-├── dataset
-│   ├── dataset_hg.py                 # Data loader for heterogeneous datasets
-│   ├── dataset_hg_combined.py        # Combined dataset handling
-│   └── format_inputs.py              # Functions for formatting model inputs
-├── env.yml                           # Environment configuration for Conda
-├── eval_commonsense.py                    # Evaluation script for commonsense reasoning
-├── hira                              # PERA core modules and tuners
-│   ├── peft_model.py                 # Implementation of HiRA and related PEFT models
-│   ├── mapping.py                    # Mapping utilities for adapting models
-│   ├── import_utils.py               # Helper functions for model import and setup
-│   └── tuners                        # Various PEFT tuners (e.g., lora, prefix, p_tuning)
-│       └── ...                       # Tuners implementations (lora.py, prefix_tuning.py, etc.)
-├── models
-│   └── get_models.py                 # Functions to load pre-trained models and HiRA variants
-├── paper
-│   └── Polynomial_Expansion_Rank_Adaptation__Enhancing_Low_Rank_Fine_Tuning_with_High_Order_Interactions.pdf
-└── train_hira.py                   # Main entrance script for training and evaluation
-```
-
 ## Overview
 
 We are inspired by the fundamental difference between first-order and higher-order terms in mathematics.
@@ -115,8 +87,50 @@ where:
 - **$\odot$** denotes the elementwise (Hadamard) product  
 
 ---
+PERA can have fast convergence speed and lower training losse:
 
-This formulation enables PERA to achieve richer nonlinear interactions and a high order, while keeping computational costs and the number of trainable parameters comparable to LoRA.
+<p align="center">
+  <img src="./Figures/loss_comparision_pera.png" width="45%">
+</p>
+
+<p align="center">
+  <b>Figure 2:</b> Training loss comparison across different PEFT methods.
+</p>
+
+
+---
+
+
+
+## Repository Structure
+
+```
+.
+├── README.md
+├── customized_trainer
+│   └── customized_trainer.py         # Customized trainer implementation
+├── data_file                          # Raw datasets for various tasks
+│   └── ...                            # (Subfolders include convai2, llm_adapt, etc.)
+├── dataset
+│   ├── dataset_hg.py                 # Data loader for heterogeneous datasets
+│   ├── dataset_hg_combined.py        # Combined dataset handling
+│   └── format_inputs.py              # Functions for formatting model inputs
+├── env.yml                           # Environment configuration for Conda
+├── eval_commonsense.py                    # Evaluation script for commonsense reasoning
+├── hira                              # PERA core modules and tuners
+│   ├── peft_model.py                 # Implementation of HiRA and related PEFT models
+│   ├── mapping.py                    # Mapping utilities for adapting models
+│   ├── import_utils.py               # Helper functions for model import and setup
+│   └── tuners                        # Various PEFT tuners (e.g., lora, prefix, p_tuning)
+│       └── ...                       # Tuners implementations (lora.py, prefix_tuning.py, etc.)
+├── models
+│   └── get_models.py                 # Functions to load pre-trained models and HiRA variants
+├── paper
+│   └── Polynomial_Expansion_Rank_Adaptation__Enhancing_Low_Rank_Fine_Tuning_with_High_Order_Interactions.pdf
+└── train_hira.py                   # Main entrance script for training and evaluation
+```
+
+
 ## Installation
 
 1. **Clone the Repository:**
