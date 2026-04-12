@@ -96,8 +96,32 @@ PERA can have fast convergence speed and lower training losse:
 <p align="center">
   <b>Figure 2:</b> Training loss comparison across different PEFT methods.
 </p>
+<div align="center">
 
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Final Loss</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DoRA</td>
+      <td>0.0915</td>
+    </tr>
+    <tr>
+      <td>HiRA</td>
+      <td>0.1595</td>
+    </tr>
+    <tr>
+      <td><b>PERA</b></td>
+      <td><b>0.0425</b></td>
+    </tr>
+  </tbody>
+</table>
 
+</div>
 ---
 
 
