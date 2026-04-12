@@ -1,8 +1,57 @@
-# HiRA: Parameter-Efficient Hadamard High-Rank Adaptation for LLMs
+# Polynomial Expansion Rank Adaptation: Enhancing Low-Rank Fine-Tuning with High-Order Interactions
 
-**Published at the Thirteenth International Conference on Learning Representations (ICLR 2025)**
+<p align="center">
+  🔥 <b>Accepted at ACL 2026 (Findings)</b> 🔥
+</p>
 
-HiRA introduces a novel parameter-efficient fine-tuning (PEFT) method for large language models (LLMs) by leveraging the Hadamard product to achieve high-rank adaptations while keeping the number of trainable parameters low. This method enhances the expressive power of model updates, resulting in improved performance on tasks such as commonsense reasoning, dialogue generation, and mathematical reasoning.
+---
+
+<p align="center">
+  <img src="./Figures/loss_comparision.png" width="45%">
+</p>
+
+<p align="center">
+  <b>Figure 1:</b> Training loss comparison across different methods.
+</p>
+
+---
+
+## 💡 Motivation
+
+From the perspective of function approximation, there exists a fundamental difference in expressive capacity between first-order linear functions and higher-order polynomial functions. 
+
+For example:
+
+- Linear: $f(x)=c + c_1 x$  
+- Polynomial: $f(x)=c + c_1 x + c_2 x^2 + \dots + c_n x^n$
+
+This gap directly leads to substantial differences in **fitting accuracy**, **convergence speed**, and **training loss**.
+
+If we interpret traditional LoRA as a first-order linear approximation of weight updates, its limitations in expressive capacity become evident.
+
+---
+
+## 🚀 Method: PERA
+
+PERA introduces a novel parameter-efficient fine-tuning (PEFT) approach for large language models (LLMs) by incorporating **structured polynomial expansion** into the low-rank adaptation space.
+
+- ✅ Explicit high-order interaction modeling  
+- ✅ Enhanced nonlinear expressivity  
+- ✅ No additional inference overhead  
+- ✅ Maintains LoRA efficiency  
+
+By generating high-order interaction terms among low-rank factors, PERA enables richer nonlinear coupling without increasing rank, leading to consistent improvements across:
+
+- Commonsense reasoning  
+- Natural language understanding  
+
+---
+
+## 🧩 Implementation
+
+Our codebase is built upon **HiRA**.
+
+---
 
 ## Repository Structure
 
@@ -19,7 +68,7 @@ HiRA introduces a novel parameter-efficient fine-tuning (PEFT) method for large 
 │   └── format_inputs.py              # Functions for formatting model inputs
 ├── env.yml                           # Environment configuration for Conda
 ├── eval_commonsense.py                    # Evaluation script for commonsense reasoning
-├── hira                              # HiRA core modules and tuners
+├── hira                              # PERA core modules and tuners
 │   ├── peft_model.py                 # Implementation of HiRA and related PEFT models
 │   ├── mapping.py                    # Mapping utilities for adapting models
 │   ├── import_utils.py               # Helper functions for model import and setup
@@ -28,24 +77,48 @@ HiRA introduces a novel parameter-efficient fine-tuning (PEFT) method for large 
 ├── models
 │   └── get_models.py                 # Functions to load pre-trained models and HiRA variants
 ├── paper
-│   └── HiRA Parameter-Efficient Hadamard High-Rank Adaptation for Large Language Models.pdf
+│   └── Polynomial_Expansion_Rank_Adaptation__Enhancing_Low_Rank_Fine_Tuning_with_High_Order_Interactions.pdf
 └── train_hira.py                   # Main entrance script for training and evaluation
 ```
 
 ## Overview
 
-HiRA reformulates the update step for LLMs as follows:
+We are inspired by the fundamental difference between first-order and higher-order terms in mathematics.
 
-> **∆W = W₀ ⊙ (A · B)**
+---
 
-where:  
-- **W₀** is the frozen pre-trained weight matrix,  
-- **A** and **B** are low-rank matrices, and  
-- **⊙** denotes the elementwise (Hadamard) product.
+### 🔹 LoRA Update
 
-This formulation enables HiRA to achieve a high effective rank in the update while keeping computational costs and the number of trainable parameters similar to methods like LoRA. Extensive experiments demonstrate that HiRA outperforms traditional PEFT techniques on multiple benchmarks.
+The update for LoRA is:
 
-## Installation
+$$
+\Delta W = BA = \sum_{i=1}^{r} b_i a_i^{T}
+$$
+
+---
+
+### 🔹 PERA Update
+
+PERA reformulates the update step for LLMs as:
+
+$$
+\Delta W = \mathrm{Poly2}(B)\mathrm{Poly2}_H(A)
+= \sum_{i=1}^{r} b_i a_i^{T}
++ \sum_{i=1}^{r} h_i (b_i \odot b_i)(a_i^{T} \odot a_i^{T})
++ \sum_{1 \le i < j \le r} h_{ij} (b_i \odot b_j)(a_i^{T} \odot a_j^{T})
+$$
+
+---
+
+where:
+
+- **$W_0$** is the frozen pre-trained weight matrix  
+- **$A$** and **$B$** are low-rank matrices  
+- **$\odot$** denotes the elementwise (Hadamard) product  
+
+---
+
+This formulation enables PERA to achieve richer nonlinear interactions and a higher effective rank, while keeping computational costs and the number of trainable parameters comparable to LoRA.## Installation
 
 1. **Clone the Repository:**
 
