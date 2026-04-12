@@ -102,10 +102,8 @@ $$
 PERA reformulates the update step for LLMs as:
 
 $$
-\Delta W = \mathrm{Poly2}(B)\mathrm{Poly2}_H(A)
-= \sum_{i=1}^{r} b_i a_i^{T}
-+ \sum_{i=1}^{r} h_i (b_i \odot b_i)(a_i^{T} \odot a_i^{T})
-+ \sum_{1 \le i < j \le r} h_{ij} (b_i \odot b_j)(a_i^{T} \odot a_j^{T})
+\Delta W = \mathrm{Poly2}(B)\mathrm{Poly2}_{H}(A)
+= \sum_{i=1}^{r} b_i a_i^{T} + \sum_{1 \le i = j }^{r} h_{ij} (b_i \odot b_j)(a_i^{T} \odot a_j^{T}) + \sum_{1 \le i < j }^{r} h_{ij} (b_i \odot b_j)(a_i^{T} \odot a_j^{T})
 $$
 
 ---
@@ -118,13 +116,14 @@ where:
 
 ---
 
-This formulation enables PERA to achieve richer nonlinear interactions and a higher effective rank, while keeping computational costs and the number of trainable parameters comparable to LoRA.## Installation
+This formulation enables PERA to achieve richer nonlinear interactions and a high order, while keeping computational costs and the number of trainable parameters comparable to LoRA.
+## Installation
 
 1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/hqsiswiliam/hira.git
-   cd hira
+   git clone https://github.com/zhangwenhao6/PERA
+   cd PERA
    ```
 
 2. **Set Up the Environment:**
@@ -133,8 +132,13 @@ This formulation enables PERA to achieve richer nonlinear interactions and a hig
 
    ```bash
    conda env create -f env.yml
-   conda activate hira
+   conda activate pera
    ```
+   Because we use RTX 50 series GPU, so after above operation, we should first uninstall torch and then install torch=2.8.0
+    ```bash
+       pip uninstall torch
+       pip install torch=2.8.0
+    ```
 
 3. **Install Dependencies:**
 
@@ -150,8 +154,8 @@ For training on a single GPU, use the following command:
 python train_hira.py \
 --peft_type=hira \
 --model=meta-llama/Meta-Llama-3-8B \
---r_ab=32 \
---enable_grad_ckpt --epoch=3 --lr=1e-3 --batch=16 \
+--r_ab=16 \
+--enable_grad_ckpt --epoch=3 --lr=1e-4 --batch=16 \
 --dataset=common_170k --seed=36 \
 --warmup=100 --eval_strategy=steps --eval_steps=80 \
 --output_folder=results_hira --target_modules=q_proj,k_proj,v_proj,up_proj,down_proj
@@ -166,36 +170,6 @@ This command fine-tunes the Meta-Llama-3-8B model on the `common_170k` dataset u
 - **--epoch, --lr, --batch, --seed, --warmup, --eval_strategy, --eval_steps:** Configure training hyperparameters.
 - **--output_folder:** Directory to store training outputs.
 - **--target_modules:** Specifies target modules for adaptation.
-
-### Distributed Training with DeepSpeed
-
-For multi-node or multi-GPU distributed training using DeepSpeed, you can use a script similar to the following:
-
-```bash
-deepspeed --master_port=29500 --num_gpus=4 --num_nodes=2 --hostfile=hostfile train_hira.py \
---peft_type=hira \
---model=meta-llama/Meta-Llama-3-8B \
---r_ab=32 \
---enable_grad_ckpt --epoch=3 --lr=1e-3 --batch=16 \
---dataset=common_170k --ds_config=ds_configs/ds_config_fp16_z3.json --seed=36 \
---warmup=100 --eval_strategy=steps --eval_steps=80 \
---output_folder=results_hira --target_modules=q_proj,k_proj,v_proj,up_proj,down_proj
-```
-
-For one-node with multi-GPU training using DeepSpeed, you can use a script similar to the following:
-
-```bash
-deepspeed --master_port=29500 --num_gpus=4 --num_nodes=1 train_hira.py \
---peft_type=hira \
---model=meta-llama/Meta-Llama-3-8B \
---r_ab=32 \
---enable_grad_ckpt --epoch=3 --lr=1e-3 --batch=16 \
---dataset=common_170k --ds_config=ds_configs/ds_config_fp16_z3.json --seed=36 \
---warmup=100 --eval_strategy=steps --eval_steps=80 \
---output_folder=results_hira --target_modules=q_proj,k_proj,v_proj,up_proj,down_proj
-```
-
-This example uses DeepSpeed options for training on 1 node with 4 GPUs each.
 
 ### Evaluation
 
@@ -221,38 +195,6 @@ CUDA_VISIBLE_DEVICES=0 python train_hira.py --dataset=obqa --batch=16 --output_f
 ```
 
 Each command evaluates the model on a specific dataset using a beam size of 4.
-
-## Code Details
-
-- **Data Handling:**  
-  - The `dataset` folder includes modules for loading and preprocessing data from various tasks.
-  - Data files are organized under `data_file` by task (e.g., `convai2`, `boolq`, etc.).
-
-- **Model & Tuners:**  
-  - The core implementations of HiRA and other PEFT methods are located in the `hira` directory.
-  - The file `models/get_models.py` contains functions to load pre-trained models and integrate HiRA-based adaptations.
-
-- **Training & Evaluation:**  
-  - The main script, `train_hira.py`, orchestrates training, evaluation, and checkpointing.
-  - Customized training routines and gradient checkpointing are implemented in `customized_trainer/customized_trainer.py`.
-
-## Data Link
-- Download the complete commonsense datasets from [here](https://github.com/AGI-Edgerunners/LLM-Adapters/tree/main/dataset) and download the commonsense 170k finetuning dataset from [here](https://github.com/AGI-Edgerunners/LLM-Adapters/blob/main/ft-training_set/commonsense_170k.json)
-- Then put the downloaded file into corresponding folders (e.g., `data_file/llm_adapt`)
-- We also provide a [Google drive download link](https://drive.google.com/file/d/1S_tsqJ8zC_L6fJ4bIQKRf0PUDwNV46HE/view?usp=sharing) for the ease of data downloading.
-- Please read and accept the DATA_LICENSE before you download.
-
-## About the Paper
-
-For a detailed explanation of the methodology, theoretical analysis, and experimental results, please refer to our paper:
-
-[HiRA Parameter-Efficient Hadamard High-Rank Adaptation for Large Language Models.pdf](./paper/HiRA%20Parameter-Efficient%20Hadamard%20High-Rank%20Adaptation%20for%20Large%20Language%20Models.pdf)
-
-**Key Contributions:**
-
-- **High-Rank Updates:** Achieved through the Hadamard product, enabling increased expressiveness without additional trainable parameters.
-- **Efficient Adaptation:** HiRA seamlessly merges with pre-trained weights, introducing no extra inference overhead.
-- **Extensive Evaluation:** Superior performance is demonstrated on benchmarks spanning commonsense reasoning, dialogue generation, and mathematical reasoning.
 
 ## Citation
 

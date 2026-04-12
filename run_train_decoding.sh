@@ -1,6 +1,6 @@
 python train_hira.py \
 --peft_type=hira \
---model= your model path \
+--model= meta-llama/Meta-Llama-3-8B \
 --r_ab=16 \
 --enable_grad_ckpt --epoch=3 --lr=1e-4 --batch=16 \
 --dataset=common_170k --seed=36 \
