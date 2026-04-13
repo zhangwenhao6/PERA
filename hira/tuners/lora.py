@@ -530,35 +530,25 @@ class Linear(nn.Linear, LoraLayer):
     def torch_polynomial_features_for_matrix_encoder(self, X, include_bias=False):
         n_samples, n_features = X.shape
         features = []
-
         if include_bias:
             features.append(torch.ones(n_samples, 1, device=X.device))
 
         # 一阶项
         features.append(X)
 
-        # 二阶交叉项
+        # 二阶交叉项（包括平方项）
         x_expanded1 = X.unsqueeze(2)  # (n_samples, n_features, 1)
         x_expanded2 = X.unsqueeze(1)  # (n_samples, 1, n_features)
         prod = x_expanded1 * x_expanded2  # (n_samples, n_features, n_features)
 
-        # 取上三角（包含对角线）
+        # 取严格上三角部分（包括对角线）
         indices = torch.triu_indices(n_features, n_features, offset=0)
-        cross_feats = prod[:, indices[0], indices[1]]  # (n_samples, n_cross_terms)
-
-        # ===== 关键修改部分 =====
-        # 判断是否为对角线
-        diag_mask = indices[0] == indices[1]  # (n_cross_terms,)
-
-        # 非对角线乘 2
-        cross_feats[:, ~diag_mask] *= 2
-
+        cross_feats = prod[:, indices[0], indices[1]] * self.lora_A_parameter[self.active_adapter]  # (n_samples, n_cross_terms)
         features.append(cross_feats)
 
         return torch.cat(features, dim=1)
 
     def torch_polynomial_features_for_matrix_decoder(self, X, include_bias=False):
-        # 不包含平方项
         n_samples, n_features = X.shape
         features = []
         if include_bias:
